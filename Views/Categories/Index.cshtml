@@ -1,0 +1,23 @@
+﻿@model List<Tsql3s2b.Models.Category>
+@{
+    ViewData["Title"] = "Lista kategorija";
+}
+
+<h3>Lista kategorija</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Naziv</th>
+            <th>Opis</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var i in Model){
+            <tr>
+                <td>@i.Categoryname</td>
+                <td>@i.Description</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,22 @@
+﻿@model Tsql3s2b.Models.Category
+@{
+    ViewData["Title"] = "Nova kategorija";
+}
+
+<h3>Dodaj novu kategoriju</h3>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Categoryname">Naziv kategorije</label>
+        <input type="text" asp-for="Categoryname" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description">Opis kategorije</label>
+        <textarea class="form-control" rows="3" style="resize:none" asp-for="Description">
+
+        </textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Dodaj</button>
+</form>
