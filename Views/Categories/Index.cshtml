@@ -4,12 +4,15 @@
 }
 
 <h3>Lista kategorija</h3>
-
+<br />
+<a asp-action="Create" class="btn btn-success">Dodaj novu kategoriju</a>
+<br />
 <table class="table">
     <thead>
         <tr>
             <th>Naziv</th>
             <th>Opis</th>
+            <th>Opcije</th>
         </tr>
     </thead>
     <tbody>
@@ -17,6 +20,10 @@
             <tr>
                 <td>@i.Categoryname</td>
                 <td>@i.Description</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@i.Categoryid" class="btn btn-warning" >Izmena</a>
+                    <a asp-action="Delete" asp-route-id="@i.Categoryid" class="btn btn-danger" >Brisanje</a>
+                </td>
             </tr>
         }
     </tbody>

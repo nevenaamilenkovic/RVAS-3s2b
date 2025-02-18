@@ -1,0 +1,41 @@
+﻿@model Tsql3s2b.Models.ViewModels.CategoryViewModel
+@{
+    ViewData["Title"] = "Brisanje kategorije";
+}
+<h2>Da li zelite da obrisete kategoriju?</h2>
+
+<p>@Model.Category.Categoryname</p>
+<p>@Model.Category.Description</p>
+
+@if(Model.Products.Any()){
+    <h4>Kategorija je povezana sa sledecim proizvodima:</h4>
+
+    <table class="table-bordered">
+        <thead>
+            <tr>
+                <th>Product Id</th>
+                <th>Product Name</th>
+                <th>Unitprice</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var p in Model.Products){
+                <tr>
+                    <td>@p.Productid</td>
+                    <td>@p.Productname</td>
+                    <td>@p.Unitprice</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p class="text-danger">Napomena: Brisanje kategorije nije moguce!</p>
+}
+    <form asp-action="Delete" method="post">
+        @if (!Model.Products.Any()) {
+            <button class="btn btn-danger" type="submit">Potvrdi brisanje</button>
+            <a href="@Url.Action("Index")" class="btn btn-warning">Otkazi</a>
+        }
+        <a href="@Url.Action("Index")" class="btn btn-danger">Nazad na listu kategorija</a>
+        <input type="hidden" asp-for="Category.Categoryid"/>
+
+    </form>
