@@ -1,0 +1,53 @@
+﻿@model Tsql3s2b.Models.ViewModels.ProductsListViewModel
+@{
+    ViewData["Title"] = "Lista proizvoda";
+}
+
+<h2 class="text-center mt-4">Lista proizvoda</h2>
+
+<div class="container mt-3">
+    <form asp-action="Index" method="get" class="mb-4 d-flex">
+        <input type="text" name="searchTerm" class="form-control me-2" placeholder="Pretraga po nazivu" value="@Model.SearchTerm">
+        <button type="submit" class="btn btn-success">Pretrazi</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Naziv</th>
+                <th>Kategorija</th>
+                <th>Dobavljac</th>
+                <th>Cena</th>
+                <th>Opcije</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var p in Model.Products){
+                <tr>
+                    <td>@p.Productid</td>
+                    <td>@p.Productname</td>
+                    <td>@p.Categoryid</td>
+                    <td>@p.Supplierid</td>
+                    <td>@p.Unitprice</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@p.Productid">Izmeni</a>
+                        <a asp-action="Delete" asp-route-id="@p.Productid">obrisi</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination justify-content-center">
+            @for(int i =1;i<=Model.TotalPages;i++){
+                <li class="page-item @(i==Model.CurrentPage? "active" :"")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+
+<a asp-action="Create" class="btn btn-secondary">Kreiraj</a>
