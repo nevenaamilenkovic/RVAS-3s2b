@@ -1,9 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.SqlServer.Server;
+using System.Numerics;
+using System.Runtime.Intrinsics.Arm;
+using System.Xml.Linq;
 using Tsql3s2b.Data;
 using Tsql3s2b.Models;
 using Tsql3s2b.Models.ViewModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Tsql3s2b.Controllers
 {
@@ -16,7 +22,7 @@ namespace Tsql3s2b.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult>Index(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(string searchTerm, int page = 1, int pageSize = 10)
         {
             var query = _context.Products.AsQueryable();
 
@@ -26,7 +32,7 @@ namespace Tsql3s2b.Controllers
             }
 
             var totalItems = await query.CountAsync();
-            var products = await query.Skip((page-1)*pageSize).Take(pageSize).ToListAsync();
+            var products = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             var model = new ProductsListViewModel
             {
@@ -41,7 +47,7 @@ namespace Tsql3s2b.Controllers
         {
             var model = new ProductViewModel
             {
-                Categories = await _context.Categories.Select(c=>new SelectListItem { Value = c.Categoryid.ToString(), Text = c.Categoryname}).ToListAsync(),
+                Categories = await _context.Categories.Select(c => new SelectListItem { Value = c.Categoryid.ToString(), Text = c.Categoryname }).ToListAsync(),
                 Suppliers = await _context.Suppliers.Select(c => new SelectListItem { Value = c.Supplierid.ToString(), Text = c.Companyname }).ToListAsync()
 
             };
@@ -50,7 +56,7 @@ namespace Tsql3s2b.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult>Create(ProductViewModel model)
+        public async Task<IActionResult> Create(ProductViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -73,7 +79,7 @@ namespace Tsql3s2b.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult>Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var p = await _context.Products.FindAsync(id);
 
@@ -96,21 +102,21 @@ namespace Tsql3s2b.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult>Edit(int id, ProductViewModel model)
+        public async Task<IActionResult> Edit(int id, ProductViewModel model)
         {
             if (id != model.ProductId) return NotFound();
 
             if (ModelState.IsValid)
             {
                 var p = await _context.Products.FindAsync(id);
-                if(p == null) return NotFound();
+                if (p == null) return NotFound();
 
                 p.Productid = model.ProductId;
                 p.Productname = model.Productname;
                 p.Supplierid = model.Supplierid;
                 p.Categoryid = model.Categoryid;
                 p.Unitprice = model.Unitprice;
-                p.Discontinued  = model.Discontinued;
+                p.Discontinued = model.Discontinued;
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
@@ -122,18 +128,44 @@ namespace Tsql3s2b.Controllers
             return View(model);
         }
 
+        //nismo stigli na terminu 3 da dovrsimo
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        //metoda prima id proizvoda koji se brise
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            //pre nego pocnemo sa brisanjem potrebno je da simuliramo sql join tabele orderDetails i orders
+            var p = await _context.Products
+                .Include(p => p.OrderDetails)
+                .ThenInclude(od => od.Order)
+                .FirstOrDefaultAsync(p => p.Productid == id);
 
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var p = _context.Products
-        //         .Include(p => p.OrderDetails)
-        //         .ThenInclude(od => od.Order)
-        //         .FirstOrDefaultAsync(p=>p.Productid == id);
+            //ukoliko proizvod sa tim id-jem ne postoji vracamo gresku
+            if (p == null) return NotFound();
 
-        //    if (p == null) return NotFound();
-           
-        //}
+            //Dalje proveravamo da li proizvod ima povezane narudzbine
+            //p.OrderDetails je lista objekata koja predstavlja sve stavke narudzbine povezane sa nekim proizvodom
+            //Any() je Linq metoda koja proverava da li kolekcija OrderDetails sadrzi bilo kakve elemente, odnosno da li je povezana sa proizvodom koji zelimo da brisemo, ako jeste uslov je true i vracaju se testavke narudzbine
+            if (p.OrderDetails.Any())
+            {
+                //Ukoliko ima povezanih narudzbina, dalje moramo da koristimo ViewData objekat da bismo prosledili podatke iz kontrolera u View
+                //Stavljamo proizvod p odnosno instancu klase Product u ViewData tako da ga mozemo koristiti u Viewu
+                ViewData["Product"] = p;
+                //Ovde isto radimo sto i sa proizvodom, samo sto prosledjujemo samo detalje o orderu na osnovu svih OrderDetailsa
+                ViewData["Orders"] = p.OrderDetails.Select(od => od.Order).ToList();
+                //Ukoliko je proizvod povezan sa nekim narudzbimana vracamo view pod nazivom “DeleteRestricted”
+                return View("DeleteRestricted");
+            }
+
+
+            //Naravo ako proizvod nema povezane narudzbine mozemo slobodno da ga obrisemo iz tabele i osvezimo stranicu sa listom proizvoda
+            _context.Products.Remove(p);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
+        //Da bi mogli odmah da brisemo proizvode sa indeksa moramo da dodamo opciju za Delete u Products/index
+        //Pravimo formu koja salje post zahtev kontroleru za brisanje proizvoda u viewu deleteRestricted
     }
+
 }

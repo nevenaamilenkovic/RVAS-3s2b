@@ -32,7 +32,11 @@
                     <td>@p.Unitprice</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@p.Productid">Izmeni</a>
-                        <a asp-action="Delete" asp-route-id="@p.Productid">obrisi</a>
+                        <form asp-action="Delete" method="post">
+                            @* Naravno kao i uvek moramo da cuvamo i prosledimo id proizvoda koji se brise *@
+                            <input type="hidden" name="id" value="@p.Productid" />
+                            <button type="submit" class="btn btn-danger btn-sm">Obrisi</button>
+                        </form>
                     </td>
                 </tr>
             }
